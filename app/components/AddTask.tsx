@@ -1,8 +1,10 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { CirclePlus } from "lucide-react"
 import React, { useState } from "react";
 import Modal from "./Modal";
-import { CiCirclePlus } from "react-icons/ci";
 import { addTodo } from "@/api";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from 'uuid';
@@ -23,9 +25,13 @@ const AddTask = () =>{
     }
 
     return <div>
-       <button onClick={() => setModalOpen(true)} popoverTarget="my-modal-1" popoverTargetAction="show" className="btn btn-primary">
-            Add new task<CiCirclePlus className="ml-2" size={20} />
-        </button>
+        <Button
+        type="button"
+        onClick={() => setModalOpen(true)}
+        >
+            Add new task
+            <CirclePlus />
+        </Button>
        <Modal modalOpen = {modalOpen} setModalOpen = {setModalOpen}>
               <form onSubmit={handleSubmitNewTodo}>
                 <h3 className="text-lg font-bold">
@@ -33,21 +39,18 @@ const AddTask = () =>{
                 </h3>
           
       
-                <input
-                  type="text"
-                  value={newTaskValue}
-                  onChange={(e) => setNewTaskValue(e.target.value)}
-                  placeholder="Type here"
-                  className="input input-bordered mt-4 w-full"
+                <Input
+                    type="text"
+                    value={newTaskValue}
+                    onChange={(e) => setNewTaskValue(e.target.value)}
+                    placeholder="Type here"
+                    className="mt-4"
                 />
       
                 <div className="modal-action">
-                  <button
-                    type="submit"
-                    className="btn btn-primary mx-auto"
-                  >
-                    Submit
-                  </button>
+                    <Button type="submit">
+                        Submit
+                    </Button> 
                 </div>
               </form>
         </Modal>

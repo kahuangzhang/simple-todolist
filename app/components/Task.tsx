@@ -1,75 +1,130 @@
 "use client"
-import { CiEdit, CiTrash } from "react-icons/ci";
-import { ITask } from "@/Tasks/Tasks";
-import { useState } from "react";
-import Modal from "./Modal";
-import { useRouter } from "next/navigation";
-import { editTodo, deleteTodo } from "@/api";
 
-interface Taskprops{
-    task: ITask
+import type { ITask } from "@/Tasks/Tasks"
+import { deleteTodo, editTodo } from "@/api"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+  TableCell,
+  TableRow
+} from "@/components/ui/table"
+import { useRouter } from "next/navigation"
+import {
+  useState,
+  type SubmitEventHandler
+} from "react"
+import Modal from "./Modal"
+import { Pencil, Trash2 } from "lucide-react"
+
+interface TaskProps {
+  task: ITask
 }
 
+const Task = ({ task }: TaskProps) => {
+  const router = useRouter()
 
-const Task: React.FC<Taskprops> = ({ task }) =>{
-    const router = useRouter();
-    const[openModalEdit, setOpenModalEdit] = useState(false);
-    const[openModalDeleted, setOpenModalDeleted] = useState(false);
-    const[taskToEdit, setTaskToEdit] = useState<string>(task.text)
-    const handleSubmitEditTodo : React.FormEventHandler<HTMLFormElement> = async(e) => {
-        e.preventDefault();
-        await editTodo({
-            id: task.id,
-            text : taskToEdit,
-        });
-        setOpenModalEdit(false);
-        router.refresh();
+  const [openModalEdit, setOpenModalEdit] = useState(false)
+  const [openModalDeleted, setOpenModalDeleted] = useState(false)
+  const [taskToEdit, setTaskToEdit] = useState(task.text)
+
+  const handleSubmitEditTodo:
+    SubmitEventHandler<HTMLFormElement> = async (event) => {
+      event.preventDefault()
+
+      await editTodo({
+        id: task.id,
+        text: taskToEdit
+      })
+
+      setOpenModalEdit(false)
+      router.refresh()
     }
-    const handleDeleteTask = async (id:string) => {
-        await deleteTodo(id);
-        setOpenModalEdit(false);
-        router.refresh();
-    }
 
+  const handleDeleteTask = async (id: string) => {
+    await deleteTodo(id)
 
-    return (
-        <tr key={task.id}>    
-            <td>{task.text}</td>
-            <td  className="flex gap-10">
-                <CiEdit onClick={() => setOpenModalEdit(true)} className="text-blue-500 cursor-pointer" size={25}/>
-                <Modal modalOpen = {openModalEdit} setModalOpen = {setOpenModalEdit}>
-                    <form onSubmit={handleSubmitEditTodo}>
-                        <h3 className="text-lg font-bold">
-                        Edit Task
-                        </h3>
-                        <div className="modal-action">
-                            <input value={taskToEdit} onChange={e => setTaskToEdit(e.target.value)} type="text" placeholder="Type here" className="input input-bordered w-full" />
-                            <button type="submit" className="btn">Submit</button>
-                        </div>
+    setOpenModalDeleted(false)
+    router.refresh()
+  }
 
-                    </form>
-                </Modal>
-                <CiTrash onClick={() => setOpenModalDeleted(true)} className="text-red-500 cursor-pointer" size={25} />
-                <Modal modalOpen = {openModalDeleted} setModalOpen = {setOpenModalDeleted}>
-                    <form onSubmit={handleSubmitEditTodo}>
-                        <h3 className="text-lg ">
-                        Are you sure you want to delate this task?
-                        </h3>
-                        <div className="modal-action">
-                           
-                            <button onClick={() => handleDeleteTask(task.id)} className="btn btn-error mx-auto block">Yes</button>
-                        </div>
+  return (
+    <TableRow>
+      <TableCell>
+        {task.text}
+      </TableCell>
 
-                    </form>
-                </Modal>
-                
-             
-            </td>
-        </tr>
-     
-     )
-    
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Edit task"
+            onClick={() => setOpenModalEdit(true)}
+          >
+            <Pencil />
+          </Button>
 
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Delete task"
+            onClick={() => setOpenModalDeleted(true)}
+          >
+            <Trash2/>
+          </Button>
+        </div>
+
+        <Modal
+          modalOpen={openModalEdit}
+          setModalOpen={setOpenModalEdit}
+        >
+          <form onSubmit={handleSubmitEditTodo}>
+            <h3 className="text-lg font-bold">
+              Edit Task
+            </h3>
+
+            <div className="mt-4 space-y-4">
+              <Input
+                type="text"
+                value={taskToEdit}
+                onChange={(event) =>
+                  setTaskToEdit(event.target.value)
+                }
+                placeholder="Edit task"
+              />
+
+              <Button type="submit">
+                Submit
+              </Button>
+            </div>
+          </form>
+        </Modal>
+
+        <Modal
+          modalOpen={openModalDeleted}
+          setModalOpen={setOpenModalDeleted}
+        >
+          <div>
+            <h3 className="text-lg font-semibold">
+              Are you sure you want to delete this task?
+            </h3>
+
+            <div className="mt-4 flex justify-end">
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => handleDeleteTask(task.id)}
+              >
+                Yes
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      </TableCell>
+    </TableRow>
+  )
 }
 
 export default Task
