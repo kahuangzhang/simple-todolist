@@ -2,10 +2,9 @@
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-
+import { CirclePlus } from "lucide-react"
 import React, { useState } from "react";
 import Modal from "./Modal";
-import { CiCirclePlus } from "react-icons/ci";
 import { addTodo } from "@/api";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from 'uuid';
@@ -31,7 +30,7 @@ const AddTask = () =>{
         onClick={() => setModalOpen(true)}
         >
             Add new task
-            <CiCirclePlus size={20} />
+            <CirclePlus />
         </Button>
        <Modal modalOpen = {modalOpen} setModalOpen = {setModalOpen}>
               <form onSubmit={handleSubmitNewTodo}>

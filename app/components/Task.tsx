@@ -13,8 +13,8 @@ import {
   useState,
   type SubmitEventHandler
 } from "react"
-import { CiEdit, CiTrash } from "react-icons/ci"
 import Modal from "./Modal"
+import { Pencil, Trash2 } from "lucide-react"
 
 interface TaskProps {
   task: ITask
@@ -62,7 +62,7 @@ const Task = ({ task }: TaskProps) => {
             aria-label="Edit task"
             onClick={() => setOpenModalEdit(true)}
           >
-            <CiEdit size={20} />
+            <Pencil />
           </Button>
 
           <Button
@@ -72,10 +72,7 @@ const Task = ({ task }: TaskProps) => {
             aria-label="Delete task"
             onClick={() => setOpenModalDeleted(true)}
           >
-            <CiTrash
-              className="text-destructive"
-              size={20}
-            />
+            <Trash2/>
           </Button>
         </div>
 
