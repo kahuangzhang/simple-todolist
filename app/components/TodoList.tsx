@@ -16,13 +16,13 @@ interface TodoListProps  {
 const TodoList:React. FC<TodoListProps> = ({ tasks }) =>{
     return <div className="overflow-x-auto rounded-lg border">
     <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-
+    <TableHeader>
+      <TableRow>
+        <TableHead>Title</TableHead>
+        <TableHead>Description</TableHead>
+        <TableHead>Actions</TableHead>
+      </TableRow>
+    </TableHeader>
       <TableBody>
         {tasks.map((task) => (
           <Task key={task.id} task={task} />

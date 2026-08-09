@@ -1,60 +1,165 @@
 "use client"
 
+import { addTodo } from "@/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { CirclePlus } from "lucide-react"
-import React, { useState } from "react";
-import Modal from "./Modal";
-import { addTodo } from "@/api";
-import { useRouter } from "next/navigation";
-import { v4 as uuidv4 } from 'uuid';
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { v4 as uuidv4 } from "uuid"
+import { z } from "zod"
+import Modal from "./Modal"
 
-const AddTask = () =>{
-    const router = useRouter();
-    const [modalOpen, setModalOpen] = useState<boolean>(false);
-    const [newTaskValue, setNewTaskValue] = useState<string>('')
-    const handleSubmitNewTodo: React.FormEventHandler<HTMLFormElement> = async(e) => {
-        e.preventDefault();
-        await addTodo({
-            id: uuidv4(),
-            text : newTaskValue,
-        });
-        setNewTaskValue('')
-        setModalOpen(false);
-        router.refresh();
+const todoSchema = z.object({
+  text: z
+    .string()
+    .trim()
+    .min(1, "Title is required")
+    .max(100, "Title must be 100 characters or fewer"),
+
+  description: z
+    .string()
+    .trim()
+    .min(1, "Description is required")
+    .max(500, "Description must be 500 characters or fewer"),
+})
+
+type TodoFormValues = z.infer<typeof todoSchema>
+
+const AddTask = () => {
+  const router = useRouter()
+  const [modalOpen, setModalOpen] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<TodoFormValues>({
+    resolver: zodResolver(todoSchema),
+    defaultValues: {
+      text: "",
+      description: "",
+    },
+  })
+
+  const handleSubmitNewTodo = async (values: TodoFormValues) => {
+    await addTodo({
+      id: uuidv4(),
+      text: values.text,
+      description: values.description,
+    })
+
+    reset()
+    setModalOpen(false)
+    router.refresh()
+  }
+
+  const handleCloseModal = (open: boolean) => {
+    setModalOpen(open)
+
+    if (!open) {
+      reset()
     }
+  }
 
-    return <div>
-        <Button
+  return (
+    <div>
+      <Button
         type="button"
         onClick={() => setModalOpen(true)}
+      >
+        Add new task
+        <CirclePlus />
+      </Button>
+
+      <Modal
+        modalOpen={modalOpen}
+        setModalOpen={handleCloseModal}
+      >
+        <form
+          onSubmit={handleSubmit(handleSubmitNewTodo)}
+          noValidate
         >
-            Add new task
-            <CirclePlus />
-        </Button>
-       <Modal modalOpen = {modalOpen} setModalOpen = {setModalOpen}>
-              <form onSubmit={handleSubmitNewTodo}>
-                <h3 className="text-lg font-bold">
-                        Add New Task
-                </h3>
-          
-      
-                <Input
-                    type="text"
-                    value={newTaskValue}
-                    onChange={(e) => setNewTaskValue(e.target.value)}
-                    placeholder="Type here"
-                    className="mt-4"
-                />
-      
-                <div className="modal-action">
-                    <Button type="submit">
-                        Submit
-                    </Button> 
-                </div>
-              </form>
-        </Modal>
+          <h3 className="text-lg font-bold">
+            Add New Task
+          </h3>
+
+          <div className="mt-4 space-y-4">
+            <div className="space-y-2">
+              <label
+                htmlFor="text"
+                className="text-sm font-medium"
+              >
+                Title
+              </label>
+
+              <Input
+                id="text"
+                type="text"
+                placeholder="Enter the todo title"
+                aria-invalid={Boolean(errors.text)}
+                aria-describedby={
+                  errors.text ? "text-error" : undefined
+                }
+                {...register("text")}
+              />
+
+              {errors.text && (
+                <p
+                  id="text-error"
+                  className="text-sm text-destructive"
+                >
+                  {errors.text.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="description"
+                className="text-sm font-medium"
+              >
+                Description
+              </label>
+
+              <Textarea
+                id="description"
+                placeholder="Add more details"
+                rows={4}
+                aria-invalid={Boolean(errors.description)}
+                aria-describedby={
+                  errors.description
+                    ? "description-error"
+                    : undefined
+                }
+                {...register("description")}
+              />
+
+              {errors.description && (
+                <p
+                  id="description-error"
+                  className="text-sm text-destructive"
+                >
+                  {errors.description.message}
+                </p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Submit"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
+  )
 }
 
 export default AddTask
