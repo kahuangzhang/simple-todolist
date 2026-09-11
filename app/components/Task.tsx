@@ -11,15 +11,19 @@ import {
 } from "@/components/ui/table"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Pencil, Trash2 } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import Modal from "./Modal"
+import {
+  useMutation,
+  useQueryClient
+} from "@tanstack/react-query"
 
 interface TaskProps {
   task: ITask
 }
+
 
 const editTodoSchema = z.object({
   text: z
@@ -38,10 +42,32 @@ const editTodoSchema = z.object({
 type EditTodoFormValues = z.infer<typeof editTodoSchema>
 
 const Task = ({ task }: TaskProps) => {
-  const router = useRouter()
+  
 
   const [openModalEdit, setOpenModalEdit] = useState(false)
   const [openModalDeleted, setOpenModalDeleted] = useState(false)
+  const queryClient = useQueryClient()
+
+  const editTodoMutation = useMutation({
+    mutationFn: editTodo,
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["todos"],
+      })
+    },
+  })
+  const deleteTodoMutation = useMutation({
+    mutationFn: deleteTodo,
+  
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["todos"],
+      })
+    },
+  })
+  
+
 
   const {
     register,
@@ -82,21 +108,27 @@ const Task = ({ task }: TaskProps) => {
   const handleSubmitEditTodo = async (
     values: EditTodoFormValues
   ) => {
-    await editTodo({
-      id: task.id,
-      text: values.text,
-      description: values.description,
-    })
-
-    setOpenModalEdit(false)
-    router.refresh()
+    try {
+      await editTodoMutation.mutateAsync({
+        id: task.id,
+        text: values.text,
+        description: values.description,
+      })
+  
+      setOpenModalEdit(false)
+    } catch (error) {
+      console.error("Failed to edit todo:", error)
+    }
   }
 
   const handleDeleteTask = async () => {
-    await deleteTodo(task.id)
+    try {
+      await deleteTodoMutation.mutateAsync(task.id)
 
-    setOpenModalDeleted(false)
-    router.refresh()
+      setOpenModalDeleted(false)
+    } catch (error) {
+      console.error("Failed to delete todo:", error)
+    }
   }
 
   return (
@@ -110,6 +142,7 @@ const Task = ({ task }: TaskProps) => {
       </TableCell>
 
       <TableCell>
+      
         <div className="flex items-center gap-2">
           <Button
             type="button"
@@ -130,6 +163,7 @@ const Task = ({ task }: TaskProps) => {
           >
             <Trash2 />
           </Button>
+
         </div>
 
         <Modal
@@ -206,13 +240,14 @@ const Task = ({ task }: TaskProps) => {
                   </p>
                 )}
               </div>
-
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Saving..." : "Save changes"}
-              </Button>
+                <Button
+                  type="submit"
+                  disabled={editTodoMutation.isPending}
+                >
+                  {editTodoMutation.isPending
+                    ? "Saving..."
+                    : "Save changes"}
+                </Button>
             </div>
           </form>
         </Modal>
@@ -230,9 +265,12 @@ const Task = ({ task }: TaskProps) => {
               <Button
                 type="button"
                 variant="destructive"
+                disabled={deleteTodoMutation.isPending}
                 onClick={handleDeleteTask}
               >
-                Yes
+                {deleteTodoMutation.isPending
+                  ? "Deleting..."
+                  : "Yes"}
               </Button>
             </div>
           </div>
