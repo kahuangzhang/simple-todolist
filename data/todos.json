@@ -2,35 +2,8 @@
   "tasks": [
     {
       "id": "2TXJat_M_w4",
-      "text": "go to again2"
-    },
-    {
-      "id": "nuPG3E5roLc",
-      "text": "hahaha"
-    },
-    {
-      "id": "cgiS5asMu4U",
-      "text": "hahaha"
-    },
-    {
-      "id": "Y4oOuoKyChA",
-      "text": "hjk"
-    },
-    {
-      "id": "3xa0EDhxTbs",
-      "text": "why"
-    },
-    {
-      "id": "2eipAtvmRAk",
-      "text": "qwe"
-    },
-    {
-      "id": "DNwBP50WkW8",
-      "text": "Done"
-    },
-    {
-      "id": "q0vJWI3VAA0",
-      "text": "1213"
+      "text": "Learn React Hook Form",
+      "description": "Refactor the add todo form using Zod validation."
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
