@@ -6,16 +6,20 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CirclePlus } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { v4 as uuidv4 } from "uuid"
 import { z } from "zod"
 import Modal from "./Modal"
+import {
+  useMutation,
+  useQueryClient
+} from "@tanstack/react-query"
+
 
 const todoSchema = z.object({
   text: z
-    .string()
+    .string() 
     .trim()
     .min(1, "Title is required")
     .max(100, "Title must be 100 characters or fewer"),
@@ -30,8 +34,19 @@ const todoSchema = z.object({
 type TodoFormValues = z.infer<typeof todoSchema>
 
 const AddTask = () => {
-  const router = useRouter()
+
   const [modalOpen, setModalOpen] = useState(false)
+  const queryClient = useQueryClient()
+
+  const addTodoMutation = useMutation({
+    mutationFn: addTodo,
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["todos"],
+      })
+    },
+  })
 
   const {
     register,
@@ -46,16 +61,21 @@ const AddTask = () => {
     },
   })
 
-  const handleSubmitNewTodo = async (values: TodoFormValues) => {
-    await addTodo({
-      id: uuidv4(),
-      text: values.text,
-      description: values.description,
-    })
+  const handleSubmitNewTodo = async (
+    values: TodoFormValues
+  ) => {
+    try {
+      await addTodoMutation.mutateAsync({
+        id: uuidv4(),
+        text: values.text,
+        description: values.description,
+      })
 
-    reset()
-    setModalOpen(false)
-    router.refresh()
+      reset()
+      setModalOpen(false)
+    } catch (error) {
+      console.error("Failed to add todo:", error)
+    }
   }
 
   const handleCloseModal = (open: boolean) => {
@@ -69,11 +89,11 @@ const AddTask = () => {
   return (
     <div>
       <Button
-        type="button"
-        onClick={() => setModalOpen(true)}
-      >
-        Add new task
-        <CirclePlus />
+         type="button"
+         onClick={() => setModalOpen(true)}
+       >
+         Add new task
+         <CirclePlus />
       </Button>
 
       <Modal
@@ -151,9 +171,11 @@ const AddTask = () => {
 
             <Button
               type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Submitting..." : "Submit"}
+              disabled={addTodoMutation.isPending}
+            > 
+              {addTodoMutation.isPending
+                ? "Submitting..."
+                : "Add New Task"}
             </Button>
           </div>
         </form>
